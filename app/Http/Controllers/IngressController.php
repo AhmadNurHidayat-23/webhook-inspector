@@ -10,7 +10,7 @@ class IngressController extends Controller {
   abort_if(RateLimiter::tooManyAttempts($key,config('inspector.request_limit')),429,'Batas frekuensi request tercapai.');RateLimiter::hit($key,60);
   abort_unless(hash_equals($endpoint->token_hash,hash('sha256',(string)$request->header('X-Webhook-Token'))),401,'Token webhook tidak valid.');
   abort_if((int)$request->header('Content-Length',0)>config('inspector.max_payload'),413);
-  $stream=$request->getContent(true);$raw=stream_get_contents($stream,config('inspector.max_payload')+1);abort_if(strlen($raw)>config('inspector.max_payload'),413);
+  $raw=(string)$request->attributes->get('inspector_raw','');abort_if(strlen($raw)>config('inspector.max_payload'),413);
   abort_if(strlen(json_encode($request->headers->all()))>16384,431);
   abort_if($endpoint->requests()->count()>=config('inspector.max_history'),429,'Riwayat penuh. Pemilik harus menghapus riwayat terlebih dahulu.');
   [$format,$body]=$redactor->body($raw,$request->header('Content-Type',''));
